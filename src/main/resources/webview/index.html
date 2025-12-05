@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java WebView Application</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-controls">
+                <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    🌙
+                </button>
+                <button id="shortcutsBtn" class="shortcuts-btn" onclick="showShortcutsModal()" title="Keyboard Shortcuts (F1)">
+                    ⌨️
+                </button>
+            </div>
+            <h1>🚀 Java WebView Desktop App</h1>
+            <p class="subtitle">Native desktop application with Java backend and embedded WebView</p>
+        </header>
+
+        <div class="content">
+            <!-- System Information Card -->
+            <div class="card">
+                <h2>📊 System Information</h2>
+                <div id="systemInfo">
+                    <p>Loading...</p>
+                </div>
+                <button onclick="loadSystemInfo()">Refresh System Info</button>
+            </div>
+
+            <!-- Backend Connection Card -->
+            <div class="card">
+                <h2>🔌 Backend Connection</h2>
+                <div id="backendStatus">
+                    <p>Checking connection...</p>
+                </div>
+                <button onclick="checkBackendHealth()">Check Backend Health</button>
+            </div>
+
+            <!-- Calculator Demo Card -->
+            <div class="card">
+                <h2>🧮 Calculator Demo</h2>
+                <div class="calculator">
+                    <input type="number" id="num1" placeholder="Number 1" value="10">
+                    <select id="operation">
+                        <option value="add">+</option>
+                        <option value="subtract">-</option>
+                        <option value="multiply">×</option>
+                        <option value="divide">÷</option>
+                    </select>
+                    <input type="number" id="num2" placeholder="Number 2" value="5">
+                    <button onclick="calculate()">Calculate</button>
+                </div>
+                <div id="calcResult" class="result"></div>
+            </div>
+
+            <!-- Data Exchange Card -->
+            <div class="card">
+                <h2>💬 Data Exchange Demo</h2>
+                <textarea id="messageInput" placeholder="Enter message to send to backend...">Hello from WebView!</textarea>
+                <button onclick="sendMessage()">Send to Backend</button>
+                <div id="messageResult" class="result"></div>
+            </div>
+
+            <!-- Native Bridge Demo Card -->
+            <div class="card">
+                <h2>🌉 Native Bridge Demo</h2>
+                <p>Test communication between JavaScript and Java using WebView bindings:</p>
+                <button onclick="testNativeBridge()">Test Native Bridge</button>
+                <button onclick="showNativeAlert()">Show Native Alert</button>
+                <div id="nativeResult" class="result"></div>
+            </div>
+
+            <!-- WebSocket Communication Card -->
+            <div class="card">
+                <h2>⚡ Real-time WebSocket</h2>
+                <div class="ws-status-bar">
+                    <span>Status: <strong id="wsStatus">🟡 Connecting...</strong></span>
+                    <span id="wsConnections">0 connections</span>
+                </div>
+                
+                <div class="ws-section">
+                    <h3>Echo Message (WebSocket)</h3>
+                    <input type="text" id="wsMessageInput" placeholder="Type message to send via WebSocket...">
+                    <button onclick="sendWebSocketMessage()">Send via WebSocket</button>
+                </div>
+                
+                <div class="ws-section">
+                    <h3>Broadcast to All Clients</h3>
+                    <input type="text" id="broadcastInput" placeholder="Broadcast message to all connected clients...">
+                    <button onclick="broadcastMessage()">Broadcast to All</button>
+                </div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div class="card">
+                <h2>⚙️ Application Settings</h2>
+                <div id="settingsContainer">
+                    <p>Loading settings...</p>
+                </div>
+                <div class="settings-actions">
+                    <button onclick="loadSettings()">Refresh Settings</button>
+                    <button onclick="saveSettings()" class="primary">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- File System Operations -->
+            <div class="card">
+                <h2>📁 File System</h2>
+                <div class="file-operations">
+                    <div class="file-section">
+                        <h3>Directory Browser</h3>
+                        <div class="path-input">
+                            <input type="text" id="currentPath" placeholder="Enter path or click Browse">
+                            <button onclick="browseDirectory()">Browse</button>
+                        </div>
+                        <div id="fileList" class="file-list">
+                            <p>Click Browse to load directory contents</p>
+                        </div>
+                    </div>
+                    
+                    <div class="file-section">
+                        <h3>File Operations</h3>
+                        <div class="file-action">
+                            <input type="text" id="filePath" placeholder="File path">
+                            <button onclick="readFile()">Read File</button>
+                        </div>
+                        <div class="file-action">
+                            <input type="text" id="newFilePath" placeholder="File path">
+                            <textarea id="fileContent" placeholder="File content" rows="3"></textarea>
+                            <button onclick="writeFile()">Write File</button>
+                        </div>
+                        <div id="fileResult" class="result"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card">
+                <h2>🔔 Notifications</h2>
+                <div id="notificationStatus">
+                    <p>Checking notification support...</p>
+                </div>
+                <div class="notification-test">
+                    <h3>Test Notifications</h3>
+                    <div class="notification-input">
+                        <input type="text" id="notificationTitle" placeholder="Notification title" value="Test Notification">
+                        <input type="text" id="notificationMessage" placeholder="Notification message" value="This is a test notification">
+                        <select id="notificationType">
+                            <option value="info">Info</option>
+                            <option value="success">Success</option>
+                            <option value="warning">Warning</option>
+                            <option value="error">Error</option>
+                        </select>
+                        <button onclick="showTestNotification()">Show Notification</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Manager -->
+            <div class="card">
+                <h2>⬆️ Application Updates</h2>
+                <div id="updateStatus">
+                    <p>Checking for updates...</p>
+                </div>
+                <div class="update-actions">
+                    <button onclick="checkForUpdates()">Check for Updates</button>
+                    <button onclick="downloadUpdate()" id="downloadBtn" disabled>Download Update</button>
+                </div>
+            </div>
+
+            <!-- Task Manager -->
+            <div class="card">
+                <h2>⚡ Background Tasks</h2>
+                <div id="taskStats" class="task-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Total:</span>
+                        <span class="stat-value" id="totalTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Running:</span>
+                        <span class="stat-value running" id="runningTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Completed:</span>
+                        <span class="stat-value completed" id="completedTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Failed:</span>
+                        <span class="stat-value failed" id="failedTasks">0</span>
+                    </div>
+                </div>
+
+                <div class="task-controls">
+                    <button onclick="refreshTasks()">Refresh Tasks</button>
+                    <button onclick="submitDemoTask()">Run Demo Task</button>
+                    <button onclick="clearCompletedTasks()">Clear Completed</button>
+                </div>
+
+                <div id="taskList" class="task-list">
+                    <p>No active tasks</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built with Java + JavaFX WebView + Javalin + WebSocket | <span id="timestamp"></span></p>
+        </footer>
+
+        <!-- Keyboard Shortcuts Modal -->
+        <div id="shortcutsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⌨️ Keyboard Shortcuts</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="shortcuts-grid">
+                        <div class="shortcut-group">
+                            <h4>General</h4>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+T</kbd> <span>New Window</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+W</kbd> <span>Close Window</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+R</kbd> <span>Reload Page</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+Shift+I</kbd> <span>Developer Tools</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-group">
+                            <h4>File Operations</h4>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+O</kbd> <span>Open File</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+S</kbd> <span>Save File</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+N</kbd> <span>New File</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-group">
+                            <h4>Settings</h4>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+,</kbd> <span>Open Settings</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+Shift+T</kbd> <span>Toggle Theme</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-group">
+                            <h4>Navigation</h4>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+1-9</kbd> <span>Switch Windows</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+Tab</kbd> <span>Next Window</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Context Menu -->
+        <div id="contextMenu" class="context-menu">
+            <div class="context-item" onclick="contextAction('copy')">📋 Copy</div>
+            <div class="context-item" onclick="contextAction('paste')">📄 Paste</div>
+            <div class="context-separator"></div>
+            <div class="context-item" onclick="contextAction('selectAll')">Select All</div>
+            <div class="context-item" onclick="contextAction('clear')">Clear</div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
