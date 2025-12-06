@@ -1,0 +1,105 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'com.example'
+version = '1.3.0'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+    // Javalin - Lightweight web framework
+    implementation 'io.javalin:javalin:5.6.3'
+    
+    // SLF4J Simple Logger
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+    
+    // SQLite Database
+    implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
+    
+    // Gson for JSON processing
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // JavaFX (managed by javafx plugin)
+    // No need to declare explicitly when using the plugin
+}
+
+javafx {
+    version = '21'
+    modules = ['javafx.controls', 'javafx.web', 'javafx.fxml', 'javafx.graphics']
+    configuration = 'implementation'
+}
+
+application {
+    mainClass = 'com.example.app.Launcher'
+    applicationDefaultJvmArgs = [
+        '-Djava.awt.headless=false',
+        '--add-opens', 'javafx.graphics/javafx.scene.web=ALL-UNNAMED'
+    ]
+}
+
+// Configure source and resource directories
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+}
+
+// Shadow JAR configuration for creating fat JAR
+shadowJar {
+    archiveBaseName = 'java-webview-app'
+    archiveClassifier = ''
+    archiveVersion = version
+    
+    manifest {
+        attributes 'Main-Class': 'com.example.app.Launcher'
+    }
+    
+    // Exclude signature files
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    
+    mergeServiceFiles()
+}
+
+// Make build task depend on shadowJar
+build.dependsOn shadowJar
+
+// Fix task dependencies for distribution tasks
+distZip.mustRunAfter shadowJar
+distTar.mustRunAfter shadowJar
+startScripts.mustRunAfter shadowJar
+startShadowScripts.dependsOn jar
+
+// Task to run the application
+tasks.named('run') {
+    doFirst {
+        println "Running Java WebView Application..."
+    }
+}
+
+// Encoding
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+// Custom task for cleaning uploads directory (optional)
+task cleanUploads {
+    doLast {
+        delete 'uploads'
+    }
+}

@@ -127,6 +127,19 @@ java -jar target/java-webview-app-1.0.0.jar
 
 This opens the application in your system web browser.
 
+### Configuration
+
+The application can be configured to run in either desktop or web mode by editing `src/main/resources/config.properties`:
+
+```properties
+run.mode=desktop  # or "web"
+```
+
+- `desktop`: Launches the native JavaFX desktop application (default)
+- `web`: Opens in the system web browser
+
+After changing the config, rebuild with `mvn clean package` and run the JAR.
+
 ## Application URLs
 
 Once running, you can access:
