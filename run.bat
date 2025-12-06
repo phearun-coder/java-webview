@@ -5,7 +5,7 @@ REM Java WebView Desktop Application Launcher
 REM Native desktop app with Java backend and embedded WebView
 
 REM Configuration
-set JAR_FILE=target\java-webview-app-1.0.0.jar
+set JAR_FILE=target\java-webview-app-1.3.0.jar
 
 echo ╔════════════════════════════════════════════════════════╗
 echo ║    Java WebView Desktop Application Launcher          ║

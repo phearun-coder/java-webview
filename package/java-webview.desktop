@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.3.0
+Type=Application
+Name=Java WebView App
+GenericName=Desktop Application
+Comment=Cross-platform desktop application with Java backend and WebView UI
+Exec=java-webview-app %u
+TryExec=java-webview-app
+Icon=java-webview-app
+Terminal=false
+Categories=Java;Development;Utility;
+StartupWMClass=com-example-app-DesktopApplication
+MimeType=application/x-java-archive;
+Keywords=java;webview;desktop;application;

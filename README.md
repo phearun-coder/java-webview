@@ -16,6 +16,7 @@ A **native desktop application** with a Java backend and modern web-based UI. Th
 - ✅ **Real-time Communication**: Frontend communicates with Java backend via HTTP/WebSocket
 - ✅ **Database Integration**: SQLite database for local data storage and analytics
 - ✅ **Data Management**: User data storage, application logs, and API call history
+- ✅ **Native Packaging**: Professional installers for Windows, macOS, and Linux
 - ✅ **Cross-platform**: Works on Windows, macOS, and Linux
 - ✅ **Portable**: Uses relative paths, works with any host address
 - ✅ **No external dependencies**: Embedded WebView, no browser required
@@ -42,10 +43,28 @@ java-webview/
 │       ├── index.html               # Main UI structure
 │       ├── app.js                   # Frontend logic + WebSocket client
 │       └── styles.css               # Modern gradient styling
+├── src/assembly/
+│   └── dist.xml                     # Maven assembly descriptor
+├── package/
+│   ├── build.properties             # Build configuration
+│   ├── java-webview.desktop         # Linux desktop integration
+│   ├── postinstall.sh               # Linux post-install script
+│   └── README-icons.md              # Icon creation guide
 ├── target/
-│   └── java-webview-app-1.0.0.jar  # Compiled application (9.2 MB)
+│   └── java-webview-app-1.0.0.jar  # Compiled application (54 MB)
+├── build-windows.bat                # Windows MSI builder
+├── build-macos.sh                   # macOS DMG builder
+├── build-deb.sh                     # Linux DEB builder
+├── build-rpm.sh                     # Linux RPM builder
 ├── run.sh                           # Linux/macOS launcher
-└── run.bat                          # Windows launcher
+├── run.bat                          # Windows launcher
+├── PACKAGING.md                     # Native packaging guide
+├── README.md                        # Main documentation
+├── API.md                           # API documentation
+├── SETUP.md                         # Installation & setup guide
+├── CONTRIBUTING.md                  # Development guidelines
+├── LICENSE                          # MIT License
+└── .gitignore                       # Git ignore rules
 ```
 
 ## Prerequisites
@@ -54,6 +73,22 @@ java-webview/
 - **Maven 3.6+**
 - **JavaFX** (automatically included via Maven dependencies)
 - **System Tray Support** (available on most desktop environments)
+
+## Downloads
+
+Get the latest release from [GitHub Releases](https://github.com/phearun-coder/java-webview/releases):
+
+### Latest Version: 1.3.0
+
+| Platform | Download | Size | Installation |
+|----------|----------|------|--------------|
+| **Windows** | [java-webview-app-1.3.0.msi](https://github.com/phearun-coder/java-webview/releases/download/v1.3.0/java-webview-app-1.3.0.msi) | ~65 MB | Double-click MSI installer |
+| **macOS** | [java-webview-app-1.3.0.dmg](https://github.com/phearun-coder/java-webview/releases/download/v1.3.0/java-webview-app-1.3.0.dmg) | ~58 MB | Mount DMG and drag to Applications |
+| **Ubuntu/Debian** | [java-webview-app_1.3.0_amd64.deb](https://github.com/phearun-coder/java-webview/releases/download/v1.3.0/java-webview-app_1.3.0_amd64.deb) | ~55 MB | `sudo apt install ./package.deb` |
+| **Red Hat/Fedora** | [java-webview-app-1.3.0-1.x86_64.rpm](https://github.com/phearun-coder/java-webview/releases/download/v1.3.0/java-webview-app-1.3.0-1.x86_64.rpm) | ~55 MB | `sudo dnf install package.rpm` |
+| **JAR (Development)** | [java-webview-app-1.3.0.jar](https://github.com/phearun-coder/java-webview/releases/download/v1.3.0/java-webview-app-1.3.0.jar) | 54 MB | `java -jar app.jar` |
+
+> **Note**: Native installers provide the best user experience with system integration, automatic updates, and professional installation.
 
 ## Building the Project
 

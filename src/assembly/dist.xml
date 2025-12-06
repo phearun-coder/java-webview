@@ -1,0 +1,60 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+    <id>dist</id>
+    <formats>
+        <format>dir</format>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <fileSets>
+        <!-- Main JAR file -->
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+
+        <!-- Packaging resources -->
+        <fileSet>
+            <directory>${project.basedir}/package</directory>
+            <outputDirectory>package</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </fileSet>
+
+        <!-- Scripts -->
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>run.sh</include>
+                <include>run.bat</include>
+            </includes>
+        </fileSet>
+
+        <!-- Documentation -->
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <outputDirectory>docs</outputDirectory>
+            <includes>
+                <include>README.md</include>
+                <include>API.md</include>
+                <include>SETUP.md</include>
+                <include>LICENSE</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+
+    <files>
+        <!-- POM file -->
+        <file>
+            <source>${project.basedir}/pom.xml</source>
+            <outputDirectory>/</outputDirectory>
+        </file>
+    </files>
+</assembly>

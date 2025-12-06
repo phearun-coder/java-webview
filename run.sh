@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-JAR_FILE="target/java-webview-app-1.0.0.jar"
+JAR_FILE="target/java-webview-app-1.3.0.jar"
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║    Java WebView Desktop Application Launcher          ║${NC}"
