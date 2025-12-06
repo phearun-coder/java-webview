@@ -127,29 +127,65 @@ java-webview/
    - Uses system browser for UI
    - No platform-specific dependencies
 
-2. **REST API**
+2. **Auto Port Detection**
+   - Automatically finds available ports
+   - Prevents port conflicts
+   - Works in development and production
+
+3. **Smart Environment Detection**
+   - Detects containerized environments
+   - Skips browser launch when inappropriate
+   - Better headless system support
+
+4. **Enhanced System Information**
+   - Server port, uptime, and memory monitoring
+   - Detailed system architecture info
+   - Real-time server statistics
+
+5. **File Upload System**
+   - Drag-and-drop file uploads
+   - Progress indicators and feedback
+   - Configurable upload destinations
+
+6. **Data Export Functionality**
+   - Export all application data as JSON
+   - Export settings separately
+   - Automatic file downloads
+
+7. **Advanced Keyboard Shortcuts**
+   - Comprehensive shortcut system
+   - Data export shortcuts (Ctrl+E, Ctrl+Shift+E)
+   - Theme toggle, navigation, and utility shortcuts
+   - Context-aware shortcuts
+
+8. **Modern UI with Animations**
+   - Smooth transitions and hover effects
+   - Loading spinners and progress indicators
+   - Dark/light theme with persistence
+   - Card-based responsive design
+
+9. **REST API**
    - Health check endpoint
-   - System information
+   - System information with server details
    - Calculator functionality
    - Data processing
 
-3. **Modern Web UI**
-   - Responsive design
-   - Card-based layout
-   - Gradient color scheme
-   - Real-time updates
+10. **Real-time WebSocket Communication**
+    - Bidirectional client-server messaging
+    - Live connection monitoring
+    - Broadcast capabilities
 
-4. **Developer-Friendly**
-   - Clean code structure
-   - Comprehensive documentation
-   - Easy to extend
-   - Well-commented code
+11. **Developer-Friendly**
+    - Clean code structure
+    - Comprehensive documentation
+    - Easy to extend
+    - Well-commented code
 
-5. **Distribution**
-   - Single JAR file (all dependencies included)
-   - Easy deployment
-   - No external dependencies
-   - Portable
+12. **Distribution**
+    - Single JAR file (all dependencies included)
+    - Easy deployment
+    - No external dependencies
+    - Portable
 
 ## API Endpoints
 
@@ -294,19 +330,18 @@ CMD ["java", "-jar", "/app.jar"]
 ## Known Issues
 
 1. **Browser Auto-Launch**
-   - ⚠️ May fail in containerized environments
-   - ✅ Fallback: Manual navigation to URL
-   - 📋 TODO: Better environment detection
+   - ✅ **FIXED:** Improved environment detection for containers/headless systems
+   - ✅ Detects Docker containers, headless Java property, and missing display
+   - ✅ Gracefully skips browser launch in unsupported environments
 
-2. **Deprecation Warnings**
-   - ⚠️ Runtime.exec() deprecated in Java 18+
-   - ✅ Still works correctly
-   - 📋 TODO: Update to ProcessBuilder
+2. **Port Conflicts**
+   - ✅ **FIXED:** Auto-detects available ports starting from 8080
+   - ✅ Searches up to 100 ports for availability
+   - ✅ Works reliably in development and deployment scenarios
 
-3. **Port Conflicts**
-   - ⚠️ Port 8080 may be in use
-   - ✅ Easy to change in code
-   - 📋 TODO: Auto-detect available port
+3. **Deprecation Warnings**
+   - ✅ **FIXED:** Runtime.exec() replaced with ProcessBuilder (already done)
+   - ✅ Modern Java practices implemented
 
 ## Maintenance
 
@@ -337,6 +372,6 @@ This is a **production-ready** foundation for a cross-platform desktop applicati
 
 ---
 
-**Last Updated:** December 5, 2025  
-**Version:** 1.0.0  
-**Status:** ✅ Fully Functional
+**Last Updated:** December 6, 2025  
+**Version:** 1.2.0  
+**Status:** ✅ Fully Functional with Advanced Features

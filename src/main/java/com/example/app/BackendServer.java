@@ -16,6 +16,7 @@ public class BackendServer {
     private final Javalin app;
     private final Gson gson;
     private final int port;
+    private final long startTime;
     private final FileSystemManager fileSystemManager;
     private final NotificationManager notificationManager;
     private final SettingsManager settingsManager;
@@ -24,6 +25,7 @@ public class BackendServer {
 
     public BackendServer(int port) {
         this.port = port;
+        this.startTime = System.currentTimeMillis();
         this.app = Javalin.create(config -> {
             // Serve static files from resources
             config.staticFiles.add("/webview", Location.CLASSPATH);
@@ -68,6 +70,26 @@ public class BackendServer {
             data.put("availableProcessors", Runtime.getRuntime().availableProcessors());
             ctx.contentType("application/json");
             ctx.result(gson.toJson(data));
+        });
+
+        // Server information endpoint
+        app.get("/api/server", ctx -> {
+            Map<String, Object> serverInfo = new HashMap<>();
+            serverInfo.put("port", port);
+            serverInfo.put("host", "localhost");
+            serverInfo.put("protocol", "http");
+            serverInfo.put("uptime", System.currentTimeMillis() - startTime);
+            serverInfo.put("javaVersion", System.getProperty("java.version"));
+            serverInfo.put("os", System.getProperty("os.name"));
+            serverInfo.put("osVersion", System.getProperty("os.version"));
+            serverInfo.put("architecture", System.getProperty("os.arch"));
+            serverInfo.put("memory", Map.of(
+                "total", Runtime.getRuntime().totalMemory(),
+                "free", Runtime.getRuntime().freeMemory(),
+                "max", Runtime.getRuntime().maxMemory()
+            ));
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(serverInfo));
         });
 
         // Example POST endpoint
@@ -290,6 +312,50 @@ public class BackendServer {
             boolean exists = fileSystemManager.exists(path);
             ctx.contentType("application/json");
             ctx.result(gson.toJson(Map.of("exists", exists)));
+        });
+
+        app.post("/api/files/upload", ctx -> {
+            var uploadedFile = ctx.uploadedFile("file");
+            String destinationPath = ctx.formParam("path");
+
+            if (uploadedFile == null) {
+                ctx.status(400);
+                ctx.contentType("application/json");
+                ctx.result(gson.toJson(Map.of("error", "No file uploaded")));
+                return;
+            }
+
+            if (destinationPath == null || destinationPath.isEmpty()) {
+                // Use default upload directory
+                destinationPath = fileSystemManager.getCurrentDirectory() + "/uploads";
+                fileSystemManager.createDirectory(destinationPath);
+            }
+
+            try {
+                // Create destination file path
+                String fileName = uploadedFile.filename();
+                String fullPath = destinationPath + "/" + fileName;
+
+                // Save uploaded file
+                java.nio.file.Path destPath = java.nio.file.Paths.get(fullPath);
+                java.nio.file.Files.createDirectories(destPath.getParent());
+                java.nio.file.Files.copy(uploadedFile.content(), destPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("fileName", fileName);
+                response.put("path", fullPath);
+                response.put("size", uploadedFile.size());
+                response.put("contentType", uploadedFile.contentType());
+
+                ctx.contentType("application/json");
+                ctx.result(gson.toJson(response));
+
+            } catch (Exception e) {
+                ctx.status(500);
+                ctx.contentType("application/json");
+                ctx.result(gson.toJson(Map.of("error", "Failed to save file: " + e.getMessage())));
+            }
         });
 
         // Notification endpoints

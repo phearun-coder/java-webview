@@ -2,6 +2,8 @@ package com.example.app;
 
 import java.awt.Desktop;
 import java.net.URI;
+import java.net.ServerSocket;
+import java.io.IOException;
 
 /**
  * Main Application class
@@ -9,11 +11,16 @@ import java.net.URI;
  * This approach works cross-platform without external dependencies
  */
 public class Application {
-    private static final int BACKEND_PORT = 8080;
+    private static final int DEFAULT_BACKEND_PORT = 8080;
+    private static int BACKEND_PORT;
     private static BackendServer server;
 
     public static void main(String[] args) {
         System.out.println("Starting Java WebView Application...");
+
+        // Auto-detect available port
+        BACKEND_PORT = findAvailablePort(DEFAULT_BACKEND_PORT);
+        System.out.println("Using port: " + BACKEND_PORT);
 
         // Start backend server
         startBackendServer();
@@ -25,7 +32,7 @@ public class Application {
             e.printStackTrace();
         }
 
-        // Open browser
+        // Open browser with better environment detection
         openBrowser("http://localhost:" + BACKEND_PORT + "/index.html");
 
         System.out.println("\n" + "=".repeat(60));
@@ -60,7 +67,27 @@ public class Application {
         }));
     }
 
+    private static int findAvailablePort(int startPort) {
+        for (int port = startPort; port < startPort + 100; port++) {
+            try (ServerSocket socket = new ServerSocket(port)) {
+                return port; // Port is available
+            } catch (IOException e) {
+                // Port is in use, try next
+                System.out.println("Port " + port + " is in use, trying next...");
+            }
+        }
+        throw new RuntimeException("No available ports found in range " + startPort + " - " + (startPort + 99));
+    }
+
     private static void openBrowser(String url) {
+        // Check if we're in a headless/container environment
+        if (isHeadlessEnvironment()) {
+            System.out.println("⚠️  Running in headless/container environment.");
+            System.out.println("💡 Browser auto-launch disabled. Please open manually:");
+            System.out.println("   " + url);
+            return;
+        }
+
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(new URI(url));
@@ -87,5 +114,30 @@ public class Application {
             System.err.println("Could not automatically open browser.");
             System.err.println("Please open manually: " + url);
         }
+    }
+
+    private static boolean isHeadlessEnvironment() {
+        // Check for common headless/container indicators
+        String display = System.getenv("DISPLAY");
+        String waylandDisplay = System.getenv("WAYLAND_DISPLAY");
+        String xdgSessionType = System.getenv("XDG_SESSION_TYPE");
+        String term = System.getenv("TERM");
+        
+        // Check if running in Docker/container
+        boolean hasContainerEnv = System.getenv("DOCKER_CONTAINER") != null ||
+                                  System.getenv("CONTAINER") != null ||
+                                  new java.io.File("/.dockerenv").exists();
+        
+        // Check for headless Java property
+        boolean isJavaHeadless = Boolean.getBoolean("java.awt.headless");
+        
+        // Check for display environment
+        boolean hasDisplay = (display != null && !display.isEmpty()) ||
+                            (waylandDisplay != null && !waylandDisplay.isEmpty()) ||
+                            "wayland".equals(xdgSessionType) ||
+                            "x11".equals(xdgSessionType);
+        
+        // If no display and in container, or explicitly headless
+        return (hasContainerEnv && !hasDisplay) || isJavaHeadless || "dumb".equals(term);
     }
 }

@@ -28,7 +28,10 @@
                 <div id="systemInfo">
                     <p>Loading...</p>
                 </div>
-                <button onclick="loadSystemInfo()">Refresh System Info</button>
+                <div class="card-actions">
+                    <button onclick="loadSystemInfo()">Refresh</button>
+                    <button onclick="exportSystemInfo()" class="secondary">Export JSON</button>
+                </div>
             </div>
 
             <!-- Backend Connection Card -->
@@ -104,6 +107,8 @@
                 <div class="settings-actions">
                     <button onclick="loadSettings()">Refresh Settings</button>
                     <button onclick="saveSettings()" class="primary">Save Settings</button>
+                    <button onclick="exportData()" title="Export all application data (Ctrl+E)">📤 Export Data</button>
+                    <button onclick="exportSettings()" title="Export settings only (Ctrl+Shift+E)">⚙️ Export Settings</button>
                 </div>
             </div>
 
@@ -134,6 +139,16 @@
                             <button onclick="writeFile()">Write File</button>
                         </div>
                         <div id="fileResult" class="result"></div>
+                    </div>
+
+                    <div class="file-section">
+                        <h3>File Upload</h3>
+                        <div class="file-upload">
+                            <input type="file" id="uploadFile" accept="*/*">
+                            <input type="text" id="uploadPath" placeholder="Upload destination path (optional)">
+                            <button onclick="uploadFile()">Upload File</button>
+                        </div>
+                        <div id="uploadResult" class="result"></div>
                     </div>
                 </div>
             </div>
@@ -231,7 +246,13 @@
                                 <kbd>Ctrl+R</kbd> <span>Reload Page</span>
                             </div>
                             <div class="shortcut-item">
+                                <kbd>F5</kbd> <span>Refresh Data</span>
+                            </div>
+                            <div class="shortcut-item">
                                 <kbd>Ctrl+Shift+I</kbd> <span>Developer Tools</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>F1</kbd> or <kbd>?</kbd> <span>Show Shortcuts</span>
                             </div>
                         </div>
                         <div class="shortcut-group">
@@ -262,6 +283,24 @@
                             </div>
                             <div class="shortcut-item">
                                 <kbd>Ctrl+Tab</kbd> <span>Next Window</span>
+                            </div>
+                        </div>
+                        <div class="shortcut-group">
+                            <h4>Data & Export</h4>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+E</kbd> <span>Export All Data</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+Shift+E</kbd> <span>Export Settings</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+L</kbd> <span>Clear Notifications</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Ctrl+Shift+R</kbd> <span>Hard Refresh</span>
+                            </div>
+                            <div class="shortcut-item">
+                                <kbd>Esc</kbd> <span>Close Modals</span>
                             </div>
                         </div>
                     </div>

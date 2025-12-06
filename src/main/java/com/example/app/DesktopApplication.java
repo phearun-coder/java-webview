@@ -13,6 +13,8 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.PopupMenu;
 import java.net.URL;
+import java.net.ServerSocket;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,11 +23,18 @@ import java.util.List;
  * Provides a true desktop application experience with embedded browser
  */
 public class DesktopApplication extends Application {
-    private static final int BACKEND_PORT = 8080;
+    private static final int DEFAULT_BACKEND_PORT = 8080;
+    private static int BACKEND_PORT;
     private static BackendServer server;
     private TrayIcon trayIcon;
     private List<Stage> windows = new ArrayList<>();
     private int windowCounter = 1;
+
+    static {
+        // Auto-detect available port
+        BACKEND_PORT = findAvailablePort(DEFAULT_BACKEND_PORT);
+        System.out.println("Desktop Application using port: " + BACKEND_PORT);
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -265,6 +274,18 @@ public class DesktopApplication extends Application {
         });
         serverThread.setDaemon(true);
         serverThread.start();
+    }
+
+    private static int findAvailablePort(int startPort) {
+        for (int port = startPort; port < startPort + 100; port++) {
+            try (ServerSocket socket = new ServerSocket(port)) {
+                return port; // Port is available
+            } catch (IOException e) {
+                // Port is in use, try next
+                System.out.println("Port " + port + " is in use, trying next...");
+            }
+        }
+        throw new RuntimeException("No available ports found in range " + startPort + " - " + (startPort + 99));
     }
 
     public static void main(String[] args) {

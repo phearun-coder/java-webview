@@ -14,6 +14,8 @@ let wsReconnectTimeout = null;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Application initialized');
     detectRuntimeEnvironment();
+    loadSavedTheme();
+    animateCards();
     updateTimestamp();
     checkBackendHealth();
     loadSystemInfo();
@@ -57,6 +59,64 @@ function updateTimestamp() {
     document.getElementById('timestamp').textContent = new Date().toLocaleString();
 }
 
+// Format uptime in milliseconds to human readable string
+function formatUptime(milliseconds) {
+    const seconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) {
+        return `${days}d ${hours % 24}h ${minutes % 60}m`;
+    } else if (hours > 0) {
+        return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${seconds % 60}s`;
+    } else {
+        return `${seconds}s`;
+    }
+}
+
+// Toggle between light and dark themes
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update button icon
+    const themeButton = document.getElementById('themeToggle');
+    themeButton.innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
+    themeButton.title = `Switch to ${newTheme === 'dark' ? 'light' : 'dark'} theme`;
+    
+    console.log(`Theme switched to: ${newTheme}`);
+}
+
+// Load saved theme on page load
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    const themeButton = document.getElementById('themeToggle');
+    themeButton.innerHTML = savedTheme === 'dark' ? '☀️' : '🌙';
+    themeButton.title = `Switch to ${savedTheme === 'dark' ? 'light' : 'dark'} theme`;
+}
+
+// Animate cards on load
+function animateCards() {
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+}
+
 // Check backend health
 async function checkBackendHealth() {
     const statusDiv = document.getElementById('backendStatus');
@@ -85,10 +145,17 @@ async function checkBackendHealth() {
 async function loadSystemInfo() {
     const infoDiv = document.getElementById('systemInfo');
     
+    // Show loading state
+    infoDiv.innerHTML = '<div class="info"><span class="loading"></span>Loading system information...</div>';
+    
     try {
         // Get info from backend API
         const response = await fetch(`${API_BASE}/data`);
         const data = await response.json();
+        
+        // Get server information
+        const serverResponse = await fetch(`${API_BASE}/server`);
+        const serverData = await serverResponse.json();
         
         // Try to get native system info if available
         let nativeInfo = null;
@@ -101,6 +168,13 @@ async function loadSystemInfo() {
             }
         }
         
+        const uptime = formatUptime(serverData.uptime);
+        const memoryMB = {
+            total: Math.round(serverData.memory.total / 1024 / 1024),
+            free: Math.round(serverData.memory.free / 1024 / 1024),
+            max: Math.round(serverData.memory.max / 1024 / 1024)
+        };
+        
         infoDiv.innerHTML = `
             <div class="info-grid">
                 <div>
@@ -108,21 +182,33 @@ async function loadSystemInfo() {
                     <p>${data.message}</p>
                 </div>
                 <div>
-                    <strong>Platform:</strong>
-                    <p>${data.platform}</p>
+                    <strong>Server Port:</strong>
+                    <p>${serverData.port}</p>
                 </div>
                 <div>
-                    <strong>Version:</strong>
-                    <p>${data.version}</p>
+                    <strong>Server Uptime:</strong>
+                    <p>${uptime}</p>
+                </div>
+                <div>
+                    <strong>Platform:</strong>
+                    <p>${data.platform} ${serverData.osVersion}</p>
+                </div>
+                <div>
+                    <strong>Architecture:</strong>
+                    <p>${serverData.architecture}</p>
+                </div>
+                <div>
+                    <strong>Java Version:</strong>
+                    <p>${data.javaVersion}</p>
+                </div>
+                <div>
+                    <strong>Memory:</strong>
+                    <p>${memoryMB.free}MB free / ${memoryMB.total}MB total</p>
                 </div>
                 ${nativeInfo ? `
                 <div>
                     <strong>OS (Native):</strong>
                     <p>${nativeInfo.os} ${nativeInfo.version}</p>
-                </div>
-                <div>
-                    <strong>Architecture:</strong>
-                    <p>${nativeInfo.arch}</p>
                 </div>
                 ` : ''}
                 <div>
@@ -607,6 +693,106 @@ async function writeFile() {
     }
 }
 
+async function uploadFile() {
+    const fileInput = document.getElementById('uploadFile');
+    const pathInput = document.getElementById('uploadPath');
+    const resultDiv = document.getElementById('uploadResult');
+    
+    const file = fileInput.files[0];
+    if (!file) {
+        resultDiv.innerHTML = '<div class="error">Please select a file to upload</div>';
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const uploadPath = pathInput.value.trim();
+    if (uploadPath) {
+        formData.append('path', uploadPath);
+    }
+    
+    try {
+        resultDiv.innerHTML = '<div class="info"><span class="loading"></span>Uploading...</div>';
+        
+        const response = await fetch(`${API_BASE}/files/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            resultDiv.innerHTML = `
+                <div class="success">
+                    File uploaded successfully!<br>
+                    <strong>${result.fileName}</strong> (${formatFileSize(result.size)})<br>
+                    Saved to: ${result.path}
+                </div>
+            `;
+            // Clear the form
+            fileInput.value = '';
+            pathInput.value = '';
+            // Trigger file operation notification
+            triggerFileNotification('upload', result.path, true);
+        } else {
+            resultDiv.innerHTML = `<div class="error">${result.error}</div>`;
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="error">Upload failed: ${error.message}</div>`;
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+async function exportSystemInfo() {
+    try {
+        // Get data from both endpoints
+        const [dataResponse, serverResponse] = await Promise.all([
+            fetch(`${API_BASE}/data`),
+            fetch(`${API_BASE}/server`)
+        ]);
+        
+        const data = await dataResponse.json();
+        const serverData = await serverResponse.json();
+        
+        // Combine the data
+        const exportData = {
+            exportedAt: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            runtime: isJavaFX ? 'JavaFX WebView' : 'Web Browser',
+            server: serverData,
+            system: data,
+            websocket: {
+                supported: WebSocket !== undefined,
+                connected: ws && ws.readyState === WebSocket.OPEN
+            }
+        };
+        
+        // Create and download JSON file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system-info-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('System information exported successfully!', 'success');
+    } catch (error) {
+        showNotification('Failed to export system information: ' + error.message, 'error');
+    }
+}
+
 // Notification Functions
 async function loadNotificationStatus() {
     const statusDiv = document.getElementById('notificationStatus');
@@ -909,10 +1095,54 @@ function initializeKeyboardShortcuts() {
             return;
         }
         
+        // F5 or Ctrl+F5: Refresh all data
+        if (e.key === 'F5' || (ctrl && e.key === 'F5')) {
+            e.preventDefault();
+            loadSystemInfo();
+            checkBackendHealth();
+            loadSettings();
+            return;
+        }
+        
         // F1 or ?: Show shortcuts
         if (e.key === 'F1' || e.key === '?') {
             e.preventDefault();
             showShortcutsModal();
+            return;
+        }
+
+        // Ctrl+E: Export data
+        if (ctrl && e.key === 'e') {
+            e.preventDefault();
+            exportData();
+            return;
+        }
+
+        // Ctrl+Shift+E: Export settings
+        if (ctrl && e.shiftKey && e.key === 'E') {
+            e.preventDefault();
+            exportSettings();
+            return;
+        }
+
+        // Ctrl+L: Clear all logs/notifications
+        if (ctrl && e.key === 'l') {
+            e.preventDefault();
+            clearAllNotifications();
+            return;
+        }
+
+        // Ctrl+Shift+R: Hard refresh (clear cache)
+        if (ctrl && e.shiftKey && e.key === 'R') {
+            e.preventDefault();
+            window.location.reload(true);
+            return;
+        }
+
+        // Escape: Close modals or clear selections
+        if (e.key === 'Escape') {
+            closeModal();
+            hideContextMenu();
             return;
         }
     });
@@ -1228,4 +1458,87 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Export Functions
+async function exportData() {
+    showNotification('Preparing data export...', 'info');
+    
+    try {
+        // Gather all available data
+        const [systemData, serverData, settingsData, taskStats] = await Promise.all([
+            fetch(`${API_BASE}/data`).then(r => r.json()),
+            fetch(`${API_BASE}/server`).then(r => r.json()),
+            fetch(`${API_BASE}/settings/all`).then(r => r.json()),
+            fetch(`${API_BASE}/tasks/stats`).then(r => r.json())
+        ]);
+
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            system: systemData,
+            server: serverData,
+            settings: settingsData,
+            taskStats: taskStats,
+            userAgent: navigator.userAgent,
+            url: window.location.href
+        };
+
+        // Create and download JSON file
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `java-webview-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification('Data exported successfully!', 'success');
+    } catch (error) {
+        console.error('Export failed:', error);
+        showNotification('Failed to export data', 'error');
+    }
+}
+
+async function exportSettings() {
+    showNotification('Preparing settings export...', 'info');
+    
+    try {
+        const settingsData = await fetch(`${API_BASE}/settings/all`).then(r => r.json());
+        
+        const exportData = {
+            timestamp: new Date().toISOString(),
+            settings: settingsData,
+            exportedBy: 'Java WebView Application'
+        };
+
+        // Create and download JSON file
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `java-webview-settings-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showNotification('Settings exported successfully!', 'success');
+    } catch (error) {
+        console.error('Settings export failed:', error);
+        showNotification('Failed to export settings', 'error');
+    }
+}
+
+function clearAllNotifications() {
+    // Clear any visible notifications or logs
+    const notificationElements = document.querySelectorAll('.notification, .toast');
+    notificationElements.forEach(el => el.remove());
+    
+    showNotification('All notifications cleared', 'info');
 }
