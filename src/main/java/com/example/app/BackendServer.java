@@ -22,6 +22,7 @@ public class BackendServer {
     private final SettingsManager settingsManager;
     private final UpdateManager updateManager;
     private final TaskManager taskManager;
+    private final DatabaseManager databaseManager;
 
     public BackendServer(int port) {
         this.port = port;
@@ -38,6 +39,7 @@ public class BackendServer {
         this.settingsManager = SettingsManager.getInstance();
         this.updateManager = UpdateManager.getInstance();
         this.taskManager = TaskManager.getInstance();
+        this.databaseManager = DatabaseManager.getInstance();
         setupRoutes();
     }
 
@@ -605,6 +607,75 @@ public class BackendServer {
             boolean removed = taskManager.removeTask(taskId);
             ctx.contentType("application/json");
             ctx.result(gson.toJson(Map.of("removed", removed)));
+        });
+
+        // Database endpoints
+        app.get("/api/database/stats", ctx -> {
+            Map<String, Object> stats = databaseManager.getDatabaseStats();
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(stats));
+        });
+
+        app.get("/api/database/userdata", ctx -> {
+            Map<String, Object> userData = databaseManager.getAllUserData();
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(userData));
+        });
+
+        app.post("/api/database/userdata", ctx -> {
+            Map<String, Object> request = gson.fromJson(ctx.body(), Map.class);
+            String key = (String) request.get("key");
+            Object value = request.get("value");
+            String dataType = (String) request.get("dataType");
+
+            if (key == null || key.isEmpty()) {
+                ctx.status(400);
+                ctx.contentType("application/json");
+                ctx.result(gson.toJson(Map.of("error", "Key is required")));
+                return;
+            }
+
+            String valueStr = value != null ? value.toString() : "";
+            try {
+                databaseManager.setUserData(key, valueStr, dataType != null ? dataType : "string");
+                ctx.contentType("application/json");
+                ctx.result(gson.toJson(Map.of("success", true)));
+            } catch (Exception e) {
+                ctx.status(500);
+                ctx.contentType("application/json");
+                ctx.result(gson.toJson(Map.of("success", false, "error", e.getMessage())));
+            }
+        });
+
+        app.delete("/api/database/userdata/{key}", ctx -> {
+            String key = ctx.pathParam("key");
+            boolean deleted = databaseManager.deleteUserData(key);
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(Map.of("deleted", deleted)));
+        });
+
+        app.get("/api/database/logs", ctx -> {
+            String limit = ctx.queryParam("limit");
+            int limitInt = limit != null ? Integer.parseInt(limit) : 100;
+            var logs = databaseManager.getLogs(limitInt);
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(logs));
+        });
+
+        app.get("/api/database/notifications", ctx -> {
+            String limit = ctx.queryParam("limit");
+            int limitInt = limit != null ? Integer.parseInt(limit) : 50;
+            var notifications = databaseManager.getNotifications(limitInt);
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(notifications));
+        });
+
+        app.get("/api/database/api-calls", ctx -> {
+            String limit = ctx.queryParam("limit");
+            int limitInt = limit != null ? Integer.parseInt(limit) : 100;
+            var apiCalls = databaseManager.getApiCalls(limitInt);
+            ctx.contentType("application/json");
+            ctx.result(gson.toJson(apiCalls));
         });
     }
 

@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     checkBackendHealth();
     loadSystemInfo();
     connectWebSocket();
+    loadDatabaseStats();
+    loadUserData();
     setInterval(updateTimestamp, 1000);
 });
 
@@ -1541,4 +1543,212 @@ function clearAllNotifications() {
     notificationElements.forEach(el => el.remove());
     
     showNotification('All notifications cleared', 'info');
+}
+
+// Database Management Functions
+async function loadDatabaseStats() {
+    try {
+        const response = await fetch(`${API_BASE}/database/stats`);
+        const stats = await response.json();
+        
+        const statsContainer = document.getElementById('dbStats');
+        statsContainer.innerHTML = `
+            <div class="db-stat-grid">
+                <div class="db-stat-item">
+                    <span class="db-stat-label">Database Health:</span>
+                    <span class="db-stat-value ${stats.healthy ? 'healthy' : 'unhealthy'}">
+                        ${stats.healthy ? '✅ Healthy' : '❌ Unhealthy'}
+                    </span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">Database Size:</span>
+                    <span class="db-stat-value">${stats.database_size_kb?.toFixed(1) || 'N/A'} KB</span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">App Logs:</span>
+                    <span class="db-stat-value">${stats.app_logs_count || 0}</span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">User Data:</span>
+                    <span class="db-stat-value">${stats.user_data_count || 0}</span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">WebSocket Messages:</span>
+                    <span class="db-stat-value">${stats.websocket_messages_count || 0}</span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">API Calls:</span>
+                    <span class="db-stat-value">${stats.api_calls_count || 0}</span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">Notifications:</span>
+                    <span class="db-stat-value">${stats.notifications_count || 0}</span>
+                </div>
+                <div class="db-stat-item">
+                    <span class="db-stat-label">File Operations:</span>
+                    <span class="db-stat-value">${stats.file_operations_count || 0}</span>
+                </div>
+            </div>
+            <div class="db-path">
+                <small>Database: ${stats.database_path || 'N/A'}</small>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Failed to load database stats:', error);
+        document.getElementById('dbStats').innerHTML = '<p class="error">Failed to load database statistics</p>';
+    }
+}
+
+async function loadUserData() {
+    try {
+        const response = await fetch(`${API_BASE}/database/userdata`);
+        const userData = await response.json();
+        
+        const container = document.getElementById('userDataList');
+        if (Object.keys(userData).length === 0) {
+            container.innerHTML = '<p>No user data stored</p>';
+            return;
+        }
+        
+        let html = '<div class="db-data-table">';
+        html += '<div class="db-table-header">';
+        html += '<span>Key</span><span>Value</span><span>Type</span><span>Actions</span>';
+        html += '</div>';
+        
+        for (const [key, data] of Object.entries(userData)) {
+            html += '<div class="db-table-row">';
+            html += `<span class="db-key">${key}</span>`;
+            html += `<span class="db-value">${data.value}</span>`;
+            html += `<span class="db-type">${data.data_type}</span>`;
+            html += `<span class="db-actions">
+                <button onclick="deleteUserData('${key}')" class="delete-btn" title="Delete">🗑️</button>
+            </span>`;
+            html += '</div>';
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Failed to load user data:', error);
+        document.getElementById('userDataList').innerHTML = '<p class="error">Failed to load user data</p>';
+    }
+}
+
+async function setUserData() {
+    const key = document.getElementById('userDataKey').value.trim();
+    const value = document.getElementById('userDataValue').value.trim();
+    const dataType = document.getElementById('userDataType').value;
+    
+    if (!key) {
+        showNotification('Key is required', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/database/userdata`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, value, dataType })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showNotification('User data saved successfully', 'success');
+            document.getElementById('userDataKey').value = '';
+            document.getElementById('userDataValue').value = '';
+            loadUserData();
+            loadDatabaseStats();
+        } else {
+            showNotification('Failed to save user data', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to set user data:', error);
+        showNotification('Failed to save user data', 'error');
+    }
+}
+
+async function deleteUserData(key) {
+    if (!confirm(`Delete user data for key: ${key}?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/database/userdata/${encodeURIComponent(key)}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        if (result.deleted) {
+            showNotification('User data deleted successfully', 'success');
+            loadUserData();
+            loadDatabaseStats();
+        } else {
+            showNotification('Failed to delete user data', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to delete user data:', error);
+        showNotification('Failed to delete user data', 'error');
+    }
+}
+
+async function loadLogs() {
+    try {
+        const response = await fetch(`${API_BASE}/database/logs?limit=50`);
+        const logs = await response.json();
+        
+        const container = document.getElementById('logsList');
+        if (logs.length === 0) {
+            container.innerHTML = '<p>No logs found</p>';
+            return;
+        }
+        
+        let html = '<div class="db-logs-table">';
+        logs.forEach(log => {
+            const levelClass = `log-${log.level?.toLowerCase() || 'info'}`;
+            html += `<div class="db-log-entry ${levelClass}">`;
+            html += `<span class="log-timestamp">${log.timestamp}</span>`;
+            html += `<span class="log-level">${log.level}</span>`;
+            html += `<span class="log-category">${log.category || 'N/A'}</span>`;
+            html += `<span class="log-message">${log.message}</span>`;
+            html += '</div>';
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Failed to load logs:', error);
+        document.getElementById('logsList').innerHTML = '<p class="error">Failed to load logs</p>';
+    }
+}
+
+async function loadApiCalls() {
+    try {
+        const response = await fetch(`${API_BASE}/database/api-calls?limit=50`);
+        const apiCalls = await response.json();
+        
+        const container = document.getElementById('apiCallsList');
+        if (apiCalls.length === 0) {
+            container.innerHTML = '<p>No API calls found</p>';
+            return;
+        }
+        
+        let html = '<div class="db-api-table">';
+        html += '<div class="db-table-header">';
+        html += '<span>Time</span><span>Method</span><span>Endpoint</span><span>Status</span><span>Response Time</span>';
+        html += '</div>';
+        
+        apiCalls.forEach(call => {
+            const statusClass = call.status_code >= 400 ? 'error' : call.status_code >= 300 ? 'warning' : 'success';
+            html += '<div class="db-table-row">';
+            html += `<span class="api-time">${call.timestamp}</span>`;
+            html += `<span class="api-method">${call.method}</span>`;
+            html += `<span class="api-endpoint">${call.endpoint}</span>`;
+            html += `<span class="api-status ${statusClass}">${call.status_code}</span>`;
+            html += `<span class="api-response-time">${call.response_time}ms</span>`;
+            html += '</div>';
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Failed to load API calls:', error);
+        document.getElementById('apiCallsList').innerHTML = '<p class="error">Failed to load API calls</p>';
+    }
 }

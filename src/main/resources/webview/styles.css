@@ -1287,3 +1287,319 @@ footer p {
 .task-action-btn.remove:hover {
     background: #5a6268;
 }
+
+/* Database Management Styles */
+.db-stats {
+    margin-bottom: 20px;
+}
+
+.db-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.db-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.db-stat-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.db-stat-value {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.db-stat-value.healthy {
+    color: #28a745;
+}
+
+.db-stat-value.unhealthy {
+    color: #dc3545;
+}
+
+.db-path {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85em;
+}
+
+.db-section {
+    margin-bottom: 25px;
+    padding: 15px;
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.db-section h3 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.db-userdata .db-action {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.db-userdata input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.db-userdata select {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.db-userdata button {
+    padding: 8px 16px;
+    background: var(--bg-button);
+    color: var(--text-button);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.db-userdata button:hover {
+    background: var(--bg-button-hover);
+}
+
+.db-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--bg-secondary);
+}
+
+.db-data-table, .db-api-table {
+    font-size: 0.9em;
+}
+
+.db-table-header {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    background: var(--bg-tertiary);
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.db-table-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr;
+    gap: 10px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.db-table-row:hover {
+    background: var(--bg-tertiary);
+}
+
+.db-key {
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #007bff;
+}
+
+.db-value {
+    font-family: monospace;
+    font-size: 0.85em;
+    word-break: break-all;
+}
+
+.db-type {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.db-actions {
+    text-align: center;
+}
+
+.delete-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: var(--transition);
+}
+
+.delete-btn:hover {
+    background: #c82333;
+}
+
+.db-logs-table {
+    font-family: monospace;
+    font-size: 0.8em;
+}
+
+.db-log-entry {
+    display: grid;
+    grid-template-columns: 1fr 0.5fr 1fr 3fr;
+    gap: 10px;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+}
+
+.db-log-entry.log-error {
+    background: #fee;
+    border-left: 3px solid #dc3545;
+}
+
+.db-log-entry.log-warn {
+    background: #fff8e1;
+    border-left: 3px solid #ffc107;
+}
+
+.db-log-entry.log-info {
+    background: #e3f2fd;
+    border-left: 3px solid #2196f3;
+}
+
+.log-timestamp {
+    color: var(--text-muted);
+    font-size: 0.75em;
+}
+
+.log-level {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.7em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.log-error .log-level {
+    background: #dc3545;
+    color: white;
+}
+
+.log-warn .log-level {
+    background: #ffc107;
+    color: black;
+}
+
+.log-info .log-level {
+    background: #2196f3;
+    color: white;
+}
+
+.log-category {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+
+.log-message {
+    word-break: break-word;
+}
+
+.db-api-table .db-table-header {
+    grid-template-columns: 1fr 0.5fr 2fr 0.5fr 0.8fr;
+}
+
+.db-api-table .db-table-row {
+    grid-template-columns: 1fr 0.5fr 2fr 0.5fr 0.8fr;
+}
+
+.api-time {
+    font-size: 0.75em;
+    color: var(--text-muted);
+}
+
+.api-method {
+    font-weight: bold;
+    font-size: 0.8em;
+}
+
+.api-endpoint {
+    font-family: monospace;
+    font-size: 0.8em;
+    word-break: break-all;
+}
+
+.api-status {
+    font-weight: bold;
+    text-align: center;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+}
+
+.api-status.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.api-status.warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.api-status.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.api-response-time {
+    text-align: right;
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+
+/* Responsive adjustments for database UI */
+@media (max-width: 768px) {
+    .db-stat-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .db-table-header,
+    .db-table-row,
+    .db-log-entry {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    .db-userdata .db-action {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .db-userdata input,
+    .db-userdata select,
+    .db-userdata button {
+        width: 100%;
+    }
+}

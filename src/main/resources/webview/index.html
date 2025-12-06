@@ -219,6 +219,54 @@
                     <p>No active tasks</p>
                 </div>
             </div>
+
+            <!-- Database Management -->
+            <div class="card">
+                <h2>🗄️ Database Management</h2>
+                <div class="db-stats" id="dbStats">
+                    <p>Loading database statistics...</p>
+                </div>
+                
+                <div class="db-section">
+                    <h3>User Data Storage</h3>
+                    <div class="db-userdata">
+                        <div class="db-action">
+                            <input type="text" id="userDataKey" placeholder="Key (e.g., user.name)">
+                            <input type="text" id="userDataValue" placeholder="Value">
+                            <select id="userDataType">
+                                <option value="string">String</option>
+                                <option value="integer">Integer</option>
+                                <option value="boolean">Boolean</option>
+                                <option value="float">Float</option>
+                            </select>
+                            <button onclick="setUserData()">Set Data</button>
+                        </div>
+                        <div id="userDataList" class="db-list">
+                            <p>Loading user data...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="db-section">
+                    <h3>Application Logs</h3>
+                    <div class="db-logs">
+                        <button onclick="loadLogs()">Load Recent Logs</button>
+                        <div id="logsList" class="db-list">
+                            <p>Click to load logs</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="db-section">
+                    <h3>API Call History</h3>
+                    <div class="db-api-calls">
+                        <button onclick="loadApiCalls()">Load API History</button>
+                        <div id="apiCallsList" class="db-list">
+                            <p>Click to load API call history</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <footer>

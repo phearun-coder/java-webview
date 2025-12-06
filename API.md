@@ -192,6 +192,298 @@ curl -X POST http://localhost:8080/api/process \
 
 ---
 
+## Database Management
+
+The application includes SQLite database integration for local data storage and application analytics.
+
+### Get Database Statistics
+
+Get comprehensive statistics about the SQLite database.
+
+**Endpoint:** `GET /api/database/stats`
+
+**Response:**
+```json
+{
+  "healthy": true,
+  "database_path": "/home/user/.java-webview-app/java-webview.db",
+  "database_size_kb": 45.2,
+  "app_logs_count": 1250,
+  "user_data_count": 15,
+  "websocket_messages_count": 89,
+  "api_calls_count": 2340,
+  "notifications_count": 45,
+  "file_operations_count": 23
+}
+```
+
+**Response Fields:**
+- `healthy` (boolean) - Database health status
+- `database_path` (string) - Full path to database file
+- `database_size_kb` (number) - Database file size in KB
+- `*_count` (number) - Record counts for each table
+
+**Example:**
+```bash
+curl http://localhost:8080/api/database/stats
+```
+
+**Response Codes:**
+- `200 OK` - Statistics retrieved successfully
+
+---
+
+### Get User Data
+
+Retrieve all user data stored in the database.
+
+**Endpoint:** `GET /api/database/userdata`
+
+**Response:**
+```json
+{
+  "user.name": {
+    "value": "John Doe",
+    "data_type": "string",
+    "created_at": "2024-12-06 10:30:15",
+    "updated_at": "2024-12-06 10:30:15"
+  },
+  "app.theme": {
+    "value": "dark",
+    "data_type": "string",
+    "created_at": "2024-12-06 10:25:00",
+    "updated_at": "2024-12-06 10:35:22"
+  }
+}
+```
+
+**Response Fields:**
+- Key-value pairs where each value contains:
+  - `value` - The stored value (converted to appropriate type)
+  - `data_type` (string) - Data type: "string", "integer", "boolean", "float"
+  - `created_at` (string) - ISO timestamp of creation
+  - `updated_at` (string) - ISO timestamp of last update
+
+**Example:**
+```bash
+curl http://localhost:8080/api/database/userdata
+```
+
+**Response Codes:**
+- `200 OK` - User data retrieved successfully
+
+---
+
+### Set User Data
+
+Store or update user data in the database.
+
+**Endpoint:** `POST /api/database/userdata`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "key": "user.name",
+  "value": "John Doe",
+  "dataType": "string"
+}
+```
+
+**Request Fields:**
+- `key` (string, required) - Unique key for the data
+- `value` (any, required) - Value to store
+- `dataType` (string, optional) - Data type: "string", "integer", "boolean", "float". Defaults to "string"
+
+**Response:**
+```json
+{
+  "success": true
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/database/userdata \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "user.email",
+    "value": "john@example.com",
+    "dataType": "string"
+  }'
+```
+
+**Response Codes:**
+- `200 OK` - Data stored successfully
+- `400 Bad Request` - Missing required fields
+
+---
+
+### Delete User Data
+
+Remove user data from the database.
+
+**Endpoint:** `DELETE /api/database/userdata/{key}`
+
+**Path Parameters:**
+- `key` (string) - The key to delete
+
+**Response:**
+```json
+{
+  "deleted": true
+}
+```
+
+**Example:**
+```bash
+curl -X DELETE http://localhost:8080/api/database/userdata/user.name
+```
+
+**Response Codes:**
+- `200 OK` - Data deleted successfully (or key didn't exist)
+
+---
+
+### Get Application Logs
+
+Retrieve recent application logs from the database.
+
+**Endpoint:** `GET /api/database/logs`
+
+**Query Parameters:**
+- `limit` (number, optional) - Maximum number of logs to return. Defaults to 100.
+
+**Response:**
+```json
+[
+  {
+    "timestamp": "2024-12-06 10:30:15",
+    "level": "INFO",
+    "category": "Application",
+    "message": "Database initialized successfully",
+    "details": null
+  },
+  {
+    "timestamp": "2024-12-06 10:30:16",
+    "level": "ERROR",
+    "category": "WebSocket",
+    "message": "Connection failed",
+    "details": "java.net.ConnectException: Connection refused"
+  }
+]
+```
+
+**Response Fields (Array):**
+- `timestamp` (string) - ISO timestamp
+- `level` (string) - Log level: "INFO", "WARN", "ERROR"
+- `category` (string) - Log category
+- `message` (string) - Log message
+- `details` (string) - Additional details (may be null)
+
+**Example:**
+```bash
+curl "http://localhost:8080/api/database/logs?limit=50"
+```
+
+**Response Codes:**
+- `200 OK` - Logs retrieved successfully
+
+---
+
+### Get Notification History
+
+Retrieve recent notification history from the database.
+
+**Endpoint:** `GET /api/database/notifications`
+
+**Query Parameters:**
+- `limit` (number, optional) - Maximum number of notifications to return. Defaults to 50.
+
+**Response:**
+```json
+[
+  {
+    "type": "success",
+    "message": "File uploaded successfully",
+    "success": true,
+    "timestamp": "2024-12-06 10:30:15"
+  },
+  {
+    "type": "error",
+    "message": "Failed to connect to server",
+    "success": false,
+    "timestamp": "2024-12-06 10:25:30"
+  }
+]
+```
+
+**Response Fields (Array):**
+- `type` (string) - Notification type
+- `message` (string) - Notification message
+- `success` (boolean) - Whether the operation was successful
+- `timestamp` (string) - ISO timestamp
+
+**Example:**
+```bash
+curl "http://localhost:8080/api/database/notifications?limit=25"
+```
+
+**Response Codes:**
+- `200 OK` - Notifications retrieved successfully
+
+---
+
+### Get API Call History
+
+Retrieve recent API call history from the database.
+
+**Endpoint:** `GET /api/database/api-calls`
+
+**Query Parameters:**
+- `limit` (number, optional) - Maximum number of API calls to return. Defaults to 100.
+
+**Response:**
+```json
+[
+  {
+    "method": "GET",
+    "endpoint": "/api/health",
+    "status_code": 200,
+    "response_time": 5,
+    "success": true,
+    "timestamp": "2024-12-06 10:30:15"
+  },
+  {
+    "method": "POST",
+    "endpoint": "/api/process",
+    "status_code": 500,
+    "response_time": 150,
+    "success": false,
+    "timestamp": "2024-12-06 10:29:45"
+  }
+]
+```
+
+**Response Fields (Array):**
+- `method` (string) - HTTP method
+- `endpoint` (string) - API endpoint
+- `status_code` (number) - HTTP status code
+- `response_time` (number) - Response time in milliseconds
+- `success` (boolean) - Whether the call was successful
+- `timestamp` (string) - ISO timestamp
+
+**Example:**
+```bash
+curl "http://localhost:8080/api/database/api-calls?limit=100"
+```
+
+**Response Codes:**
+- `200 OK` - API calls retrieved successfully
+
+---
+
 ## Static Files
 
 The application also serves static files for the web UI.

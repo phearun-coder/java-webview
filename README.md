@@ -14,6 +14,8 @@ A **native desktop application** with a Java backend and modern web-based UI. Th
 - ✅ **Modern UI**: Responsive web interface with gradient design
 - ✅ **Menu System**: Native application menus (File, View, Help)
 - ✅ **Real-time Communication**: Frontend communicates with Java backend via HTTP/WebSocket
+- ✅ **Database Integration**: SQLite database for local data storage and analytics
+- ✅ **Data Management**: User data storage, application logs, and API call history
 - ✅ **Cross-platform**: Works on Windows, macOS, and Linux
 - ✅ **Portable**: Uses relative paths, works with any host address
 - ✅ **No external dependencies**: Embedded WebView, no browser required
@@ -29,7 +31,13 @@ java-webview/
 │   │   ├── Application.java         # Browser-based launcher (legacy)
 │   │   ├── DesktopApplication.java  # Native JavaFX desktop app
 │   │   ├── BackendServer.java       # Javalin web server, API endpoints
-│   │   └── WebSocketHandler.java    # WebSocket connection management
+│   │   ├── WebSocketHandler.java    # WebSocket connection management
+│   │   ├── DatabaseManager.java     # SQLite database management
+│   │   ├── FileSystemManager.java   # File system operations
+│   │   ├── NotificationManager.java # System notifications
+│   │   ├── SettingsManager.java     # Application settings
+│   │   ├── UpdateManager.java       # Application updates
+│   │   └── TaskManager.java         # Background task management
 │   └── resources/webview/
 │       ├── index.html               # Main UI structure
 │       ├── app.js                   # Frontend logic + WebSocket client
@@ -140,6 +148,15 @@ Process arbitrary data
 
 ### `POST /api/broadcast`
 Broadcast message to all connected WebSocket clients
+
+### Database Management
+- `GET /api/database/stats` - Database statistics and health
+- `GET /api/database/userdata` - Get all stored user data
+- `POST /api/database/userdata` - Store user data
+- `DELETE /api/database/userdata/{key}` - Delete user data
+- `GET /api/database/logs` - Application logs history
+- `GET /api/database/notifications` - Notification history
+- `GET /api/database/api-calls` - API call history
 ```json
 {
   "message": "Hello to all clients!"

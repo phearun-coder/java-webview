@@ -389,6 +389,140 @@ public class DatabaseManager {
         return operations;
     }
 
+    // API methods for REST endpoints
+    public Map<String, Object> getDatabaseStats() {
+        Map<String, Object> stats = new HashMap<>();
+        try {
+            // Count records in each table
+            String[] tables = {"app_logs", "user_data", "file_operations", "websocket_messages", "api_calls", "notifications"};
+            for (String table : tables) {
+                String sql = "SELECT COUNT(*) FROM " + table;
+                try (Statement stmt = connection.createStatement();
+                     ResultSet rs = stmt.executeQuery(sql)) {
+                    if (rs.next()) {
+                        stats.put(table + "_count", rs.getInt(1));
+                    }
+                }
+            }
+
+            // Database file size
+            stats.put("database_path", getDatabasePath().toString());
+            stats.put("database_size_kb", getDatabasePath().toFile().length() / 1024.0);
+            stats.put("healthy", isHealthy());
+
+        } catch (SQLException e) {
+            logError("Database", "Failed to get database stats", e.getMessage());
+        }
+        return stats;
+    }
+
+    public Map<String, Object> getAllUserData() {
+        Map<String, Object> userData = new HashMap<>();
+        String sql = "SELECT key, value, data_type, created_at, updated_at FROM user_data ORDER BY key";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                String key = rs.getString("key");
+                String value = rs.getString("value");
+                String dataType = rs.getString("data_type");
+
+                // Convert value based on data type
+                Object convertedValue = switch (dataType) {
+                    case "integer" -> Integer.parseInt(value);
+                    case "boolean" -> Boolean.parseBoolean(value);
+                    case "float", "double" -> Double.parseDouble(value);
+                    default -> value;
+                };
+
+                userData.put(key, Map.of(
+                    "value", convertedValue,
+                    "data_type", dataType,
+                    "created_at", rs.getString("created_at"),
+                    "updated_at", rs.getString("updated_at")
+                ));
+            }
+        } catch (SQLException e) {
+            logError("Database", "Failed to get all user data", e.getMessage());
+        }
+        return userData;
+    }
+
+    public boolean deleteUserData(String key) {
+        String sql = "DELETE FROM user_data WHERE key = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, key);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            logError("Database", "Failed to delete user data: " + key, e.getMessage());
+            return false;
+        }
+    }
+
+    public List<Map<String, Object>> getLogs(int limit) {
+        return getRecentLogs(limit);
+    }
+
+    public List<Map<String, Object>> getNotifications(int limit) {
+        List<Map<String, Object>> notifications = new ArrayList<>();
+        String sql = """
+            SELECT type, message, success, timestamp
+            FROM notifications
+            ORDER BY timestamp DESC
+            LIMIT ?;
+            """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", rs.getString("type"));
+                notification.put("message", rs.getString("message"));
+                notification.put("success", rs.getBoolean("success"));
+                notification.put("timestamp", rs.getString("timestamp"));
+                notifications.add(notification);
+            }
+        } catch (SQLException e) {
+            logError("Database", "Failed to get notifications", e.getMessage());
+        }
+
+        return notifications;
+    }
+
+    public List<Map<String, Object>> getApiCalls(int limit) {
+        List<Map<String, Object>> apiCalls = new ArrayList<>();
+        String sql = """
+            SELECT method, endpoint, status_code, response_time, success, timestamp
+            FROM api_calls
+            ORDER BY timestamp DESC
+            LIMIT ?;
+            """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> apiCall = new HashMap<>();
+                apiCall.put("method", rs.getString("method"));
+                apiCall.put("endpoint", rs.getString("endpoint"));
+                apiCall.put("status_code", rs.getInt("status_code"));
+                apiCall.put("response_time", rs.getLong("response_time"));
+                apiCall.put("success", rs.getBoolean("success"));
+                apiCall.put("timestamp", rs.getString("timestamp"));
+                apiCalls.add(apiCall);
+            }
+        } catch (SQLException e) {
+            logError("Database", "Failed to get API calls", e.getMessage());
+        }
+
+        return apiCalls;
+    }
+
     // Utility methods
     private void executeUpdate(String sql) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
