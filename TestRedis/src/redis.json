@@ -1,0 +1,51 @@
+[
+  {
+    "compressor": "NONE",
+    "id": "2e8311ae-a958-4cea-b761-7942b93d4f1b",
+    "host": "redis-17272.c321.us-east-1-2.ec2.cloud.redislabs.com",
+    "port": 17272,
+    "name": "Redis-Cloud",
+    "db": null,
+    "username": null,
+    "password": "StmmZEV3VICOxJBLSONQKP7RQXs8mgNZ",
+    "connectionType": "STANDALONE",
+    "nameFromProvider": "Redis-Cloud",
+    "provider": "REDIS_CLOUD",
+    "lastConnection": "2025-12-22T08:10:27.145Z",
+    "modules": [
+      {
+        "name": "bf",
+        "version": 80207,
+        "semanticVersion": "8.2.7"
+      },
+      {
+        "name": "search",
+        "version": 80206,
+        "semanticVersion": "8.2.6"
+      },
+      {
+        "name": "timeseries",
+        "version": 80202,
+        "semanticVersion": "8.2.2"
+      },
+      {
+        "name": "vectorset",
+        "version": 1
+      },
+      {
+        "name": "ReJSON",
+        "version": 80203,
+        "semanticVersion": "8.2.3"
+      }
+    ],
+    "tls": null,
+    "tlsServername": null,
+    "verifyServerCert": null,
+    "caCert": null,
+    "clientCert": null,
+    "ssh": null,
+    "sshOptions": null,
+    "forceStandalone": null,
+    "tags": []
+  }
+]

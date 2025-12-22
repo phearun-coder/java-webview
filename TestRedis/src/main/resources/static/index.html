@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redis Test Application</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+        }
+
+        .response-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success { background: #00b894; }
+        .status-error { background: #e74c3c; }
+        .status-info { background: #3498db; }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Redis Test Application</h1>
+            <p>Complete Redis operations testing interface</p>
+        </div>
+
+        <div class="main-content">
+            <!-- String Operations -->
+            <div class="section">
+                <h2>📝 String Operations</h2>
+                <div class="form-group">
+                    <label for="stringKey">Key:</label>
+                    <input type="text" id="stringKey" placeholder="my-key">
+                </div>
+                <div class="form-group">
+                    <label for="stringValue">Value:</label>
+                    <input type="text" id="stringValue" placeholder="my-value">
+                </div>
+                <div class="form-group">
+                    <label for="stringTTL">TTL (seconds, optional):</label>
+                    <input type="number" id="stringTTL" placeholder="60">
+                </div>
+                <button class="btn" onclick="setString()">Set String</button>
+                <button class="btn btn-success" onclick="getString()">Get String</button>
+            </div>
+
+            <!-- Key Operations -->
+            <div class="section">
+                <h2>🔑 Key Operations</h2>
+                <div class="form-group">
+                    <label for="keyPattern">Pattern:</label>
+                    <input type="text" id="keyPattern" placeholder="*" value="*">
+                </div>
+                <div class="form-group">
+                    <label for="keyName">Key Name:</label>
+                    <input type="text" id="keyName" placeholder="key-to-check">
+                </div>
+                <div class="quick-actions">
+                    <button class="btn" onclick="getAllKeys()">List Keys</button>
+                    <button class="btn btn-success" onclick="checkKeyExists()">Check Exists</button>
+                    <button class="btn btn-success" onclick="getTTL()">Get TTL</button>
+                    <button class="btn btn-danger" onclick="deleteKey()">Delete Key</button>
+                </div>
+            </div>
+
+            <!-- Object Operations -->
+            <div class="section">
+                <h2>📦 Object Operations</h2>
+                <div class="form-group">
+                    <label for="objectKey">Key:</label>
+                    <input type="text" id="objectKey" placeholder="user:123">
+                </div>
+                <div class="form-group">
+                    <label for="objectValue">JSON Value:</label>
+                    <textarea id="objectValue" rows="4" placeholder='{"name":"John","age":30}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="objectTTL">TTL (seconds, optional):</label>
+                    <input type="number" id="objectTTL" placeholder="300">
+                </div>
+                <button class="btn" onclick="setObject()">Set Object</button>
+                <button class="btn btn-success" onclick="getObject()">Get Object</button>
+            </div>
+
+            <!-- Hash Operations -->
+            <div class="section">
+                <h2>🗂️ Hash Operations</h2>
+                <div class="form-group">
+                    <label for="hashKey">Hash Key:</label>
+                    <input type="text" id="hashKey" placeholder="user:profile">
+                </div>
+                <div class="form-group">
+                    <label for="hashField">Field:</label>
+                    <input type="text" id="hashField" placeholder="name">
+                </div>
+                <div class="form-group">
+                    <label for="hashValue">Field Value:</label>
+                    <input type="text" id="hashValue" placeholder="John Doe">
+                </div>
+                <button class="btn" onclick="setHashField()">Set Field</button>
+                <button class="btn btn-success" onclick="getHashField()">Get Field</button>
+                <button class="btn btn-success" onclick="getAllHashFields()">Get All Fields</button>
+            </div>
+
+            <!-- List Operations -->
+            <div class="section">
+                <h2>📋 List Operations</h2>
+                <div class="form-group">
+                    <label for="listKey">List Key:</label>
+                    <input type="text" id="listKey" placeholder="my-list">
+                </div>
+                <div class="form-group">
+                    <label for="listValue">Value:</label>
+                    <input type="text" id="listValue" placeholder="list-item">
+                </div>
+                <div class="form-group">
+                    <label for="listDirection">Direction:</label>
+                    <select id="listDirection">
+                        <option value="right">Right (End)</option>
+                        <option value="left">Left (Start)</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="pushToList()">Push</button>
+                <button class="btn btn-success" onclick="popFromList()">Pop</button>
+                <button class="btn btn-success" onclick="getList()">Get List</button>
+            </div>
+
+            <!-- Utility Operations -->
+            <div class="section">
+                <h2>⚙️ Utility Operations</h2>
+                <div class="form-group">
+                    <label for="counterKey">Counter Key:</label>
+                    <input type="text" id="counterKey" placeholder="page-views">
+                </div>
+                <div class="form-group">
+                    <label for="incrementValue">Increment By:</label>
+                    <input type="number" id="incrementValue" placeholder="1" value="1">
+                </div>
+                <button class="btn" onclick="incrementCounter()">Increment</button>
+                <button class="btn btn-success" onclick="getRedisInfo()">Redis Info</button>
+            </div>
+
+            <!-- Response Area -->
+            <div class="section full-width">
+                <h2>📊 Response</h2>
+                <div id="responseArea" class="response-area">
+                    Ready to test Redis operations...
+                    
+Try these quick tests:
+1. Set a string: key="test", value="hello"
+2. Get all keys with pattern "*"
+3. Check Redis info
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/redis-app/api/redis';
+
+        function logResponse(operation, data) {
+            const timestamp = new Date().toLocaleTimeString();
+            const status = data.success ? '✅' : '❌';
+            const responseArea = document.getElementById('responseArea');
+            
+            const logEntry = `[${timestamp}] ${status} ${operation}\n${JSON.stringify(data, null, 2)}\n${'='.repeat(50)}\n`;
+            responseArea.textContent = logEntry + responseArea.textContent;
+        }
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(API_BASE + url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        // String Operations
+        async function setString() {
+            const key = document.getElementById('stringKey').value;
+            const value = document.getElementById('stringValue').value;
+            const ttl = document.getElementById('stringTTL').value;
+            
+            if (!key || !value) {
+                alert('Please enter both key and value');
+                return;
+            }
+
+            const params = new URLSearchParams({ key, value });
+            if (ttl) params.append('ttl', ttl);
+
+            const data = await makeRequest(`/string?${params}`, { method: 'POST' });
+            logResponse('SET STRING', data);
+        }
+
+        async function getString() {
+            const key = document.getElementById('stringKey').value;
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            const data = await makeRequest(`/string/${encodeURIComponent(key)}`);
+            logResponse('GET STRING', data);
+        }
+
+        // Key Operations
+        async function getAllKeys() {
+            const pattern = document.getElementById('keyPattern').value || '*';
+            const data = await makeRequest(`/keys?pattern=${encodeURIComponent(pattern)}`);
+            logResponse('LIST KEYS', data);
+        }
+
+        async function checkKeyExists() {
+            const key = document.getElementById('keyName').value;
+            if (!key) {
+                alert('Please enter a key name');
+                return;
+            }
+
+            const data = await makeRequest(`/key/${encodeURIComponent(key)}/exists`);
+            logResponse('KEY EXISTS', data);
+        }
+
+        async function getTTL() {
+            const key = document.getElementById('keyName').value;
+            if (!key) {
+                alert('Please enter a key name');
+                return;
+            }
+
+            const data = await makeRequest(`/key/${encodeURIComponent(key)}/ttl`);
+            logResponse('GET TTL', data);
+        }
+
+        async function deleteKey() {
+            const key = document.getElementById('keyName').value;
+            if (!key) {
+                alert('Please enter a key name');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete key: ${key}?`)) return;
+
+            const data = await makeRequest(`/key/${encodeURIComponent(key)}`, { method: 'DELETE' });
+            logResponse('DELETE KEY', data);
+        }
+
+        // Object Operations
+        async function setObject() {
+            const key = document.getElementById('objectKey').value;
+            const valueText = document.getElementById('objectValue').value;
+            const ttl = document.getElementById('objectTTL').value;
+
+            if (!key || !valueText) {
+                alert('Please enter both key and value');
+                return;
+            }
+
+            try {
+                const value = JSON.parse(valueText);
+                const params = new URLSearchParams({ key });
+                if (ttl) params.append('ttl', ttl);
+
+                const data = await makeRequest(`/object?${params}`, {
+                    method: 'POST',
+                    body: JSON.stringify(value)
+                });
+                logResponse('SET OBJECT', data);
+            } catch (error) {
+                logResponse('SET OBJECT', { success: false, error: 'Invalid JSON: ' + error.message });
+            }
+        }
+
+        async function getObject() {
+            const key = document.getElementById('objectKey').value;
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            const data = await makeRequest(`/object/${encodeURIComponent(key)}`);
+            logResponse('GET OBJECT', data);
+        }
+
+        // Hash Operations
+        async function setHashField() {
+            const key = document.getElementById('hashKey').value;
+            const field = document.getElementById('hashField').value;
+            const value = document.getElementById('hashValue').value;
+
+            if (!key || !field || !value) {
+                alert('Please enter key, field, and value');
+                return;
+            }
+
+            const data = await makeRequest(`/hash/${encodeURIComponent(key)}?field=${encodeURIComponent(field)}`, {
+                method: 'POST',
+                body: JSON.stringify(value)
+            });
+            logResponse('SET HASH FIELD', data);
+        }
+
+        async function getHashField() {
+            const key = document.getElementById('hashKey').value;
+            const field = document.getElementById('hashField').value;
+
+            if (!key || !field) {
+                alert('Please enter both key and field');
+                return;
+            }
+
+            const data = await makeRequest(`/hash/${encodeURIComponent(key)}/${encodeURIComponent(field)}`);
+            logResponse('GET HASH FIELD', data);
+        }
+
+        async function getAllHashFields() {
+            const key = document.getElementById('hashKey').value;
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            const data = await makeRequest(`/hash/${encodeURIComponent(key)}`);
+            logResponse('GET ALL HASH FIELDS', data);
+        }
+
+        // List Operations
+        async function pushToList() {
+            const key = document.getElementById('listKey').value;
+            const value = document.getElementById('listValue').value;
+            const direction = document.getElementById('listDirection').value;
+
+            if (!key || !value) {
+                alert('Please enter both key and value');
+                return;
+            }
+
+            const data = await makeRequest(`/list/${encodeURIComponent(key)}/push?direction=${direction}`, {
+                method: 'POST',
+                body: JSON.stringify(value)
+            });
+            logResponse('PUSH TO LIST', data);
+        }
+
+        async function popFromList() {
+            const key = document.getElementById('listKey').value;
+            const direction = document.getElementById('listDirection').value;
+
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            const data = await makeRequest(`/list/${encodeURIComponent(key)}/pop?direction=${direction}`, {
+                method: 'POST'
+            });
+            logResponse('POP FROM LIST', data);
+        }
+
+        async function getList() {
+            const key = document.getElementById('listKey').value;
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            const data = await makeRequest(`/list/${encodeURIComponent(key)}`);
+            logResponse('GET LIST', data);
+        }
+
+        // Utility Operations
+        async function incrementCounter() {
+            const key = document.getElementById('counterKey').value;
+            const delta = document.getElementById('incrementValue').value || 1;
+
+            if (!key) {
+                alert('Please enter a key');
+                return;
+            }
+
+            const data = await makeRequest(`/increment/${encodeURIComponent(key)}?delta=${delta}`, {
+                method: 'POST'
+            });
+            logResponse('INCREMENT', data);
+        }
+
+        async function getRedisInfo() {
+            const data = await makeRequest('/info');
+            logResponse('REDIS INFO', data);
+        }
+
+        // Initialize with Redis info on load
+        window.onload = function() {
+            setTimeout(getRedisInfo, 1000);
+        };
+    </script>
+</body>
+</html>
